@@ -32,9 +32,13 @@ local function update(w, screen)
     local name = layout.getname(layout.get(screen))
     w._layoutbox_tooltip:set_text(name or "[no name]")
 
-    local img = surface.load_silently(beautiful["layout_" .. name], false)
-    w.imagebox.image = img
-    w.textbox.text   = img and "" or name
+    local image_name = "layout_" .. name
+    local theme_image = beautiful[image_name]
+    local success = false
+    if theme_image ~= nil then
+        success = w.imagebox:set_image(beautiful[image_name])
+    end
+    w.textbox.text = success and "" or name
 end
 
 local function update_from_tag(t)
