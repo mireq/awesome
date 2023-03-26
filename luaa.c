@@ -47,6 +47,7 @@
 #include "awesome.h"
 #include "common/backtrace.h"
 #include "common/version.h"
+#include "common/xcursor.h"
 #include "config.h"
 #include "event.h"
 #include "objects/client.h"
@@ -347,6 +348,31 @@ luaA_load_image(lua_State *L)
 
     /* lua has to make sure to free the ref or we have a leak */
     lua_pushlightuserdata(L, surface);
+    return 1;
+}
+
+
+static int
+luaA_set_cursor_size(lua_State *L)
+{
+    static char size_env[17];
+    int size = luaL_checkinteger(L, 1);
+    if (size < 0) {
+        size = 1;
+    }
+    if (size > 999) {
+        size = 999;
+    }
+
+    sprintf(size_env, "XCURSOR_SIZE=%d", size);
+    putenv(size_env);
+
+    xcb_cursor_context_free(globalconf.cursor_ctx);
+    if (xcb_cursor_context_new(globalconf.connection, globalconf.screen, &globalconf.cursor_ctx) < 0)
+        fatal("Failed to initialize xcb-cursor");
+    xcursor_clear_cache();
+
+    lua_pushnil(L);
     return 1;
 }
 
@@ -1099,6 +1125,7 @@ luaA_init(xdgHandle* xdg, string_array_t *searchpath)
         { "emit_signal", luaA_awesome_emit_signal },
         { "systray", luaA_systray },
         { "load_image", luaA_load_image },
+        { "set_cursor_size", luaA_set_cursor_size },
         { "pixbuf_to_surface", luaA_pixbuf_to_surface },
         { "set_preferred_icon_size", luaA_set_preferred_icon_size },
         { "register_xproperty", luaA_register_xproperty },
