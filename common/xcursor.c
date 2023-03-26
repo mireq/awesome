@@ -105,6 +105,9 @@ static char const * const xcursor_font[] =
     [XC_xterm] = "xterm",
 };
 
+static xcb_cursor_t xcursor[countof(xcursor_font)];
+
+
 /** Get a cursor from a string.
  * \param s The string.
  */
@@ -138,13 +141,18 @@ xcursor_font_tostr(uint16_t c)
 xcb_cursor_t
 xcursor_new(xcb_cursor_context_t *ctx, uint16_t cursor_font)
 {
-    static xcb_cursor_t xcursor[countof(xcursor_font)];
-
     if (!xcursor[cursor_font]) {
         xcursor[cursor_font] = xcb_cursor_load_cursor(ctx, xcursor_font_tostr(cursor_font));
     }
 
     return xcursor[cursor_font];
+}
+
+
+void xcursor_clear_cache(void)
+{
+    for(int i = 0; i < countof(xcursor); i++)
+        xcursor[i] = 0;
 }
 
 
